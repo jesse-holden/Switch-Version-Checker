@@ -29,7 +29,7 @@
 		setTimeout(function(){
 			$.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20content%20from%20html%20where%20url%3D%22http%3A%2F%2Fwww.nintendo.com%2F3ds%2Fsystem-update%22%20and%20xpath%3D%22%2F%2Fh2%5Bcontains(%40class%2C'b6')%5D%22&format=json&callback=", function(data){
 				$resString = data["query"]["results"]["h2"];
-				$verNum = $resString.substr(27);
+				$verNum = $resString.substr(28);
 				$('#answer').text($verNum);
 				$('#answer').css("color", "green");
 			});
