@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Check Current Nintendo 3DS Firmware Version</title>
+    <style>
+		body {
+			text-align: center;
+			font-weight: bold;
+			font-family: sans-serif;
+		}
+		h1 {
+			font-size: 2em;
+			margin-top: 2em;
+		}
+		#answer {
+			font-size: 4em;
+			text-transform: capitalize;
+		}
+    </style>
+  </head>
+  <body>
+  	<h1>What is the newest/current firmware version being pushed out to the 3DS?</h1>
+  	<p id="answer">Checking...</p>
+  </body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script>
+	jQuery(document).ready( function( $ ) {
+		setTimeout(function(){
+			$.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20content%20from%20html%20where%20url%3D%22http%3A%2F%2Fwww.nintendo.com%2F3ds%2Fsystem-update%22%20and%20xpath%3D%22%2F%2Fh2%5Bcontains(%40class%2C'b6')%5D%22&format=json&callback=", function(data){
+				$resString = data["query"]["results"]["h2"];
+				$verNum = $resString.substr(27);
+				$('#answer').text($verNum);
+				$('#answer').css("color", "green");
+			});
+		}, 1000);
+	});
+  </script>
+</html>
