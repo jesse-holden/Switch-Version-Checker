@@ -17,20 +17,29 @@
 			font-size: 4em;
 			text-transform: capitalize;
 		}
+		#age {
+			font-size: 1em;
+			margin-top: 2em;
+		}
     </style>
   </head>
   <body>
   	<h1>What is the newest/current firmware version being pushed out to the 3DS?</h1>
-  	<p id="answer">Checking...</p>
+  	<p id="answer" title="According to yellows8's page">Checking...</p>
+  	<br />
+  	<h1></h1><p id="age"></p>
   </body>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script>
 	jQuery(document).ready( function( $ ) {
 		setTimeout(function() {
-			$.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20content%20from%20html%20where%20url%3D%22http%3A%2F%2Fwww.nintendo.com%2F3ds%2Fsystem-update%22%20and%20xpath%3D%22%2F%2Fh2%5Bcontains(%40class%2C'b6')%5D%22&format=json&callback=", function(data) {
-				$resString = data["query"]["results"]["h2"];
-				$verNum = $resString.substr(28);
-				$('#answer').text($verNum.substr(0,$verNum.length-1)+"(U/E/J)").css("color", "green");
+			$.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D%22https%3A%2F%2Fyls8.mtheall.com%2Fninupdates%2Freports.php%22%20and%20xpath%3D%22%2F%2Fbody%2Ftable%5B1%5D%2Ftbody%2Ftr%5Btd%2F%2Ftext()%5Bcontains(.%2C%20'Old3DS')%5D%5D%22&format=json&callback=", function(data) {
+				$tRows = data["query"]["results"]["tr"];
+				$tData =  $tRows[$tRows.length-1]["td"];
+				$verNum = $tData[1], $verAge = $tData[3];
+				$('#answer').text($verNum+"(U/E/J)").css("color", "green");
+				$('#age').text($verAge).css("color", "red");
+				$('h1').eq(1).text("Timestamp of last update: ");
 			});
 		}, 500);
 	});
