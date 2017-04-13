@@ -1,47 +1,71 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <title>Check Current Nintendo 3DS Firmware Version</title>
     <style>
-		body {
-			text-align: center;
-			font-weight: bold;
-			font-family: sans-serif;
-		}
-		h1 {
-			font-size: 2em;
-			margin-top: 2em;
-		}
-		#answer {
-			font-size: 4em;
-			text-transform: capitalize;
-		}
-		#age {
-			font-size: 1em;
-			margin-top: 2em;
-		}
+    body {
+        text-align: center;
+        font-weight: bold;
+        font-family: sans-serif;
+    }
+    
+    h1 {
+        font-size: 2em;
+        margin-top: 1em;
+    }
+    
+    #answer {
+        font-size: 4em;
+    }
+    
+    footer {
+        text-align: center;
+        margin-top: 100px;
+    }
     </style>
-  </head>
-  <body>
-  	<h1>What is the newest/current firmware version being pushed out to the 3DS?</h1>
-  	<p id="answer" title="According to yellows8's page">Checking...</p>
-  	<br />
-  	<h1></h1><p id="age"></p>
-  </body>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script>
-	jQuery(document).ready( function( $ ) {
-		setTimeout(function() {
-			$.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D%22https%3A%2F%2Fyls8.mtheall.com%2Fninupdates%2Freports.php%22%20and%20xpath%3D%22%2F%2Fbody%2Ftable%5B1%5D%2Ftbody%2Ftr%5Btd%2F%2Ftext()%5Bcontains(.%2C%20'Old3DS')%5D%5D%22&format=json&callback=", function(data) {
-				$tRows = data["query"]["results"]["tr"];
-				$tData =  $tRows[$tRows.length-1]["td"];
-				$verNum = $tData[1], $verAge = $tData[3];
-				$('#answer').text($verNum+"(U/E/J)").css("color", "green");
-				$('#age').text($verAge).css("color", "red");
-				$('h1').eq(1).text("Timestamp of last update: ");
-			});
-		}, 500);
-	});
-  </script>
+</head>
+
+<body>
+    <h1>What is the newest/current firmware version being pushed out to the 3DS?</h1>
+    <p id="answer" title="According to yellows8's page">Checking...</p>
+    <br />
+    <h1>Time since last update:</h1>
+    <h1 id="age">Checking...</h1>
+    <footer>Useful links
+        <br />
+        <a href="http://3ds.guide">3DS Hacking Guide</a> --
+        <a href="http://reddit.com/r/3dshacks">Reddit</a> --
+        <a href="https://yls8.mtheall.com/ninupdates/reports.php">Powered by yellows8</a>
+    </footer>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.js"></script>
+<script>
+jQuery(document).ready(function($) {
+    setTimeout(function() {
+        $.ajax({
+            url: 'https://api.rss2json.com/v1/api.json',
+            method: 'GET',
+            dataType: 'json',
+            data: {
+                rss_url: 'https://yls8.mtheall.com/ninupdates/feed.php',
+                api_key: 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm'
+            }
+        }).done(function(data) {
+            $verKey = data["items"][1];
+            $verNum = $verKey["title"].substr(7);
+            $dateTimeParts = $verKey["pubDate"].split(" ");
+            $timeParts = $dateTimeParts[1].split(':');
+            $dateParts = $dateTimeParts[0].split('-');
+            $date = new Date($dateParts[0], parseInt($dateParts[1], 10) - 1, $dateParts[2], $timeParts[0], $timeParts[1]);
+            $('#answer').text($verNum).css("color", "green");
+            $('#age').html("~" + $.format.prettyDate($date) + "<br />");
+            $('#age').append("(" + $.format.date($date, "MMM D yyyy @ h:mm a") + " UTC)");
+        });
+    }, 50);
+});
+</script>
+
 </html>
