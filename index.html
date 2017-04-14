@@ -55,7 +55,7 @@ jQuery(document).ready(function($) {
             }
         }).done(function(data) {
             $verKey = data["items"][1];
-            $verNum = $verKey["title"].substr(7);
+            $verNum = $verKey["title"].split(" ")[1];
             $dateTimeParts = $verKey["pubDate"].split(" ");
             $timeParts = $dateTimeParts[1].split(':');
             $dateParts = $dateTimeParts[0].split('-');
