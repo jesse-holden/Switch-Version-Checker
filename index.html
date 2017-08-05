@@ -54,7 +54,7 @@ jQuery(document).ready(function($) {
                 api_key: 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm'
             }
         }).done(function(data) {
-            $verKey = data["items"][1];
+            $verKey = data["items"][2];
             $verNum = $verKey["title"].split(" ")[1];
             $dateTimeParts = $verKey["pubDate"].split(" ");
             $timeParts = $dateTimeParts[1].split(':');
