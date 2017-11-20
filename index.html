@@ -54,7 +54,19 @@ jQuery(document).ready(function($) {
                 api_key: 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm'
             }
         }).done(function(data) {
-            $verKey = data["items"][1];
+            $verPos = 0;
+            (function(items) {
+                let i = 0;
+                $.each(items, function(i, v) {
+                    if (v.title.split(" ")[0] != "Old3DS") {
+                        i++;
+                    } else {
+                        $verPos = i;
+                        return 1;
+                    }
+                });
+            })(data.items);
+            $verKey = data["items"][$verPos];
             $verNum = $verKey["title"].split(" ")[1];
             $dateTimeParts = $verKey["pubDate"].split(" ");
             $timeParts = $dateTimeParts[1].split(':');
