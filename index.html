@@ -57,7 +57,7 @@ jQuery(document).ready(function($) {
             $verPos = (function(items) {
                 let i = 0;
                 $.each(items, function(k, v) {
-                    if (v.title.split(" ")[0] != "Old3DS") {
+                    if (v.title.indexOf("Old3DS ") != 0) {
                         i++;
                     } else {
                         return false;
