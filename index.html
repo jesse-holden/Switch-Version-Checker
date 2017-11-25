@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Check Current Nintendo 3DS Firmware Version</title>
+    <title>Check Current Nintendo Switch Firmware Version</title>
     <style>
     body {
         text-align: center;
@@ -28,7 +28,7 @@
 </head>
 
 <body>
-    <h1>What is the newest/current firmware version being pushed out to the 3DS?</h1>
+    <h1>What is the newest/current firmware version being pushed out to the Nintendo Switch?</h1>
     <p id="answer" title="According to yellows8's page">Checking...</p>
     <br />
     <h1>Time since last firmware release:</h1>
@@ -57,7 +57,7 @@ jQuery(document).ready(function($) {
             $verPos = (function(items) {
                 let i = 0;
                 $.each(items, function(k, v) {
-                    if (v.title.indexOf("Old3DS ") != 0) {
+                    if (v.title.indexOf("Switch ") != 0) {
                         i++;
                     } else {
                         return false;
