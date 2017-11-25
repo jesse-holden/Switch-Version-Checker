@@ -5,78 +5,96 @@
     <meta charset="UTF-8">
     <title>Check Current Nintendo Switch Firmware Version</title>
     <style>
-    body {
-        text-align: center;
-        font-weight: bold;
-        font-family: sans-serif;
-    }
-    
-    h1 {
-        font-size: 2em;
-        margin-top: 1em;
-    }
-    
-    #answer {
-        font-size: 4em;
-    }
-    
-    footer {
-        text-align: center;
-        margin-top: 100px;
-    }
+        body {
+            text-align: center;
+            font-weight: bold;
+            font-family: sans-serif;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-top: 1em;
+        }
+
+        #answer {
+            font-size: 4em;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 100px;
+        }
     </style>
 </head>
 
 <body>
-    <h1>What is the newest/current firmware version being pushed out to the Nintendo Switch?</h1>
-    <p id="answer" title="According to yellows8's page">Checking...</p>
-    <br />
-    <h1>Time since last firmware release:</h1>
-    <h1 id="age">Checking...</h1>
-    <footer>Useful links
-        <br />
-        <a href="https://www.reddit.com/r/SwitchHaxing/comments/5z21np/nintendo_switch_official_hacking_guide/">Switch Hacking Guide</a> --
-        <a href="https://www.reddit.com/r/SwitchHaxing/">Reddit</a> --
-        <a href="https://yls8.mtheall.com/ninupdates/reports.php">Powered by yellows8</a>
-    </footer>
+<h1>What is the newest/current firmware version being pushed out to the Nintendo Switch?</h1>
+<p id="answer" title="According to yellows8's page">Checking...</p>
+<br/>
+<h1>Time since last firmware release:</h1>
+<h1 id="age">Checking...</h1>
+<footer>Useful links
+    <br/>
+    <a href="https://www.reddit.com/r/SwitchHaxing/comments/5z21np/nintendo_switch_official_hacking_guide/">Switch
+        Hacking Guide</a> --
+    <a href="https://www.reddit.com/r/SwitchHaxing/">Reddit</a> --
+    <a href="https://yls8.mtheall.com/ninupdates/reports.php">Powered by yellows8</a>
+</footer>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.js"></script>
 <script>
-jQuery(document).ready(function($) {
-    setTimeout(function() {
-        $.ajax({
-            url: 'https://api.rss2json.com/v1/api.json',
-            method: 'GET',
-            dataType: 'json',
-            data: {
-                rss_url: 'https://yls8.mtheall.com/ninupdates/feed.php',
-                api_key: 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm'
+    jQuery(document).ready(function ($) {
+        setTimeout(function () {
+            var COLORS = [
+                '#e21400', '#91580f', '#f8a700', '#f78b00',
+                '#58dc00', '#287b00', '#a8f07a', '#4ae8c4',
+                '#3b88eb', '#3824aa', '#a700ff', '#d300e7'
+            ];
+
+            function getVersionColor(version) {
+                // Compute hash code
+                var hash = 7;
+                for (var i = 0; i < version.length; i++) {
+                    hash = version.charCodeAt(i) + (hash << 5) - hash;
+                }
+                // Calculate color
+                var index = Math.abs(hash % COLORS.length);
+                return COLORS[index];
             }
-        }).done(function(data) {
-            $verPos = (function(items) {
-                let i = 0;
-                $.each(items, function(k, v) {
-                    if (v.title.indexOf("Switch ") != 0) {
-                        i++;
-                    } else {
-                        return false;
-                    }
-                });
-                return i;
-            })(data.items);
-            $verKey = data["items"][$verPos];
-            $verNum = $verKey["title"].split(" ")[1];
-            $dateTimeParts = $verKey["pubDate"].split(" ");
-            $timeParts = $dateTimeParts[1].split(':');
-            $dateParts = $dateTimeParts[0].split('-');
-            $date = new Date($dateParts[0], parseInt($dateParts[1], 10) - 1, $dateParts[2], $timeParts[0], $timeParts[1]);
-            $('#answer').text($verNum).css("color", "green");
-            $('#age').html("~" + $.format.prettyDate($date) + "<br />");
-            $('#age').append("(" + $.format.date($date, "MMM D yyyy @ h:mm a") + " UTC)");
-        });
-    }, 50);
-});
+
+            $.ajax({
+                url: 'https://api.rss2json.com/v1/api.json',
+                method: 'GET',
+                dataType: 'json',
+                data: {
+                    rss_url: 'https://yls8.mtheall.com/ninupdates/feed.php',
+                    api_key: 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm'
+                }
+            }).done(function (data) {
+                $verPos = (function (items) {
+                    var i = 0;
+                    $.each(items, function (k, v) {
+                        if (v.title.indexOf("Switch ") !== 0) {
+                            i++;
+                        } else {
+                            return false;
+                        }
+                    });
+                    return i;
+                })(data.items);
+                $verKey = data["items"][$verPos];
+                $verNum = $verKey["title"].split(" ")[1];
+                $dateTimeParts = $verKey["pubDate"].split(" ");
+                $timeParts = $dateTimeParts[1].split(':');
+                $dateParts = $dateTimeParts[0].split('-');
+                $date = new Date($dateParts[0], parseInt($dateParts[1], 10) - 1, $dateParts[2], $timeParts[0], $timeParts[1]);
+                $('#answer').text($verNum).css("color", getVersionColor($verNum));
+                $('#age').html("~" + $.format.prettyDate($date) + "<br />");
+                $('#age').append("(" + $.format.date($date, "MMM D yyyy @ h:mm a") + " UTC)");
+            });
+        }, 50);
+    });
 </script>
 
 </html>
