@@ -55,77 +55,106 @@
     <a href="https://yls8.mtheall.com/ninupdates/reports.php">Powered by yellows8</a>
 </footer>
 </body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.js"></script>
 <script>
-    jQuery(document).ready(function ($) {
-        setTimeout(function () {
-            var COLORS = [
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const COLORS = [
                 '#e21400', '#91580f', '#f8a700', '#f78b00',
                 '#58dc00', '#287b00', '#a8f07a', '#4ae8c4',
                 '#3b88eb', '#3824aa', '#a700ff', '#d300e7'
             ];
 
             function getVersionColor(version) {
-                // Compute hash code
-                var hash = 7;
-                for (var i = 0; i < version.length; i++) {
+                let hash = 7;
+                for (let i = 0; i < version.length; i++) {
                     hash = version.charCodeAt(i) + (hash << 5) - hash;
                 }
-                // Calculate color
-                var index = Math.abs(hash % COLORS.length);
+                const index = Math.abs(hash % COLORS.length);
                 return COLORS[index];
             }
 
-            $.ajax({
-                url: 'https://api.rss2json.com/v1/api.json',
-                method: 'GET',
-                dataType: 'json',
-                data: {
-                    rss_url: 'https://yls8.mtheall.com/ninupdates/feed.php',
-                    api_key: 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm'
-                }
-            }).done(function (data) {
-                function parseDateFromPubDate(pubDate) {
-                    var dateTimeParts = pubDate.split(" ");
-                    var timeParts = dateTimeParts[1].split(':');
-                    var dateParts = dateTimeParts[0].split('-');
-                    return new Date(dateParts[0], parseInt(dateParts[1], 10) - 1, dateParts[2], timeParts[0], timeParts[1]);
-                }
+            function formatPrettyDate(date) {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const diffMonths = Math.floor(diffDays / 30);
+                const diffYears = Math.floor(diffDays / 365);
 
-                function updateVersionDisplay(versionSelector, ageSelector, version, date) {
-                    if (version) {
-                        $(versionSelector).text(version).css("color", getVersionColor(version));
-                        var $ageElement = $(ageSelector);
-                        $ageElement.html("~" + $.format.prettyDate(date) + "<br />");
-                        $ageElement.append("(" + $.format.date(date, "MMM D yyyy @ h:mm a") + " UTC)");
-                    } else {
-                        $(versionSelector).text("N/A");
-                        $(ageSelector).text("No updates found");
+                if (diffDays === 0) return 'today';
+                if (diffDays === 1) return '1 day ago';
+                if (diffDays < 30) return `${diffDays} days ago`;
+                if (diffMonths === 1) return '1 month ago';
+                if (diffMonths < 12) return `${diffMonths} months ago`;
+                if (diffYears === 1) return '1 year ago';
+                return `${diffYears} years ago`;
+            }
+
+            function formatDate(date) {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const hours = date.getHours();
+                const minutes = date.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const displayHours = hours % 12 || 12;
+                const displayMinutes = minutes.toString().padStart(2, '0');
+                
+                return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()} @ ${displayHours}:${displayMinutes} ${ampm}`;
+            }
+
+            const url = new URL('https://api.rss2json.com/v1/api.json');
+            url.searchParams.append('rss_url', 'https://yls8.mtheall.com/ninupdates/feed.php');
+            url.searchParams.append('api_key', 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm');
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    function parseDateFromPubDate(pubDate) {
+                        const dateTimeParts = pubDate.split(" ");
+                        const timeParts = dateTimeParts[1].split(':');
+                        const dateParts = dateTimeParts[0].split('-');
+                        return new Date(dateParts[0], parseInt(dateParts[1], 10) - 1, dateParts[2], timeParts[0], timeParts[1]);
                     }
-                }
 
-                var switchVersion = null;
-                var switch2Version = null;
-                var switchDate = null;
-                var switch2Date = null;
-
-                // Find the latest versions for both Switch and Switch 2
-                $.each(data.items, function (k, v) {
-                    var title = v.title;
-                    if (title.indexOf("Switch 2 ") === 0 && !switch2Version) {
-                        switch2Version = title.split(" ")[2];
-                        switch2Date = parseDateFromPubDate(v.pubDate);
-                    } else if (title.indexOf("Switch ") === 0 && title.indexOf("Switch 2 ") !== 0 && !switchVersion) {
-                        switchVersion = title.split(" ")[1];
-                        switchDate = parseDateFromPubDate(v.pubDate);
+                    function updateVersionDisplay(versionSelector, ageSelector, version, date) {
+                        const versionElement = document.querySelector(versionSelector);
+                        const ageElement = document.querySelector(ageSelector);
+                        
+                        if (version) {
+                            versionElement.textContent = version;
+                            versionElement.style.color = getVersionColor(version);
+                            ageElement.innerHTML = `~${formatPrettyDate(date)}<br/>(${formatDate(date)} UTC)`;
+                        } else {
+                            versionElement.textContent = 'N/A';
+                            ageElement.textContent = 'No updates found';
+                        }
                     }
+
+                    let switchVersion = null;
+                    let switch2Version = null;
+                    let switchDate = null;
+                    let switch2Date = null;
+
+                    data.items.forEach(item => {
+                        const title = item.title;
+                        if (title.indexOf("Switch 2 ") === 0 && !switch2Version) {
+                            switch2Version = title.split(" ")[2];
+                            switch2Date = parseDateFromPubDate(item.pubDate);
+                        } else if (title.indexOf("Switch ") === 0 && title.indexOf("Switch 2 ") !== 0 && !switchVersion) {
+                            switchVersion = title.split(" ")[1];
+                            switchDate = parseDateFromPubDate(item.pubDate);
+                        }
+                    });
+
+                    updateVersionDisplay('#switch-version', '#switch-age', switchVersion, switchDate);
+                    updateVersionDisplay('#switch2-version', '#switch2-age', switch2Version, switch2Date);
+                })
+                .catch(error => {
+                    console.error('Error fetching RSS data:', error);
+                    document.querySelector('#switch-version').textContent = 'Error';
+                    document.querySelector('#switch-age').textContent = 'Failed to load';
+                    document.querySelector('#switch2-version').textContent = 'Error';
+                    document.querySelector('#switch2-age').textContent = 'Failed to load';
                 });
-
-                // Update both versions
-                updateVersionDisplay('#switch-version', '#switch-age', switchVersion, switchDate);
-                updateVersionDisplay('#switch2-version', '#switch2-age', switch2Version, switch2Date);
-            });
         }, 50);
     });
 </script>
