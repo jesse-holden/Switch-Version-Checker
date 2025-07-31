@@ -16,8 +16,14 @@
             margin-top: 1em;
         }
 
-        #answer {
-            font-size: 4em;
+        .version-text {
+            font-size: 3em;
+            font-weight: bold;
+        }
+        
+        .age-text {
+            font-size: 1.2em;
+            margin-top: 10px;
         }
 
         footer {
@@ -28,11 +34,19 @@
 </head>
 
 <body>
-<h1>What is the newest/current firmware version being pushed out to the Nintendo Switch?</h1>
-<p id="answer" title="According to yellows8's page">Checking...</p>
-<br/>
-<h1>Time since last firmware release:</h1>
-<h1 id="age">Checking...</h1>
+<h1>What is the newest/current firmware version being pushed out to Nintendo Switch systems?</h1>
+<div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap;">
+    <div>
+        <h2>Switch</h2>
+        <p id="switch-version" class="version-text" title="According to yellows8's page">Checking...</p>
+        <p id="switch-age" class="age-text">Checking...</p>
+    </div>
+    <div>
+        <h2>Switch 2</h2>
+        <p id="switch2-version" class="version-text" title="According to yellows8's page">Checking...</p>
+        <p id="switch2-age" class="age-text">Checking...</p>
+    </div>
+</div>
 <footer>Useful links
     <br/>
     <a href="https://www.reddit.com/r/SwitchHaxing/comments/5z21np/nintendo_switch_official_hacking_guide/">Switch
@@ -72,26 +86,45 @@
                     api_key: 'njke4g4qls3gbcn9zq90cbs2fzimry3zwnbssvsm'
                 }
             }).done(function (data) {
-                $verPos = (function (items) {
-                    var i = 0;
-                    $.each(items, function (k, v) {
-                        if (v.title.indexOf("Switch ") !== 0) {
-                            i++;
-                        } else {
-                            return false;
-                        }
-                    });
-                    return i;
-                })(data.items);
-                $verKey = data["items"][$verPos];
-                $verNum = $verKey["title"].split(" ")[1];
-                $dateTimeParts = $verKey["pubDate"].split(" ");
-                $timeParts = $dateTimeParts[1].split(':');
-                $dateParts = $dateTimeParts[0].split('-');
-                $date = new Date($dateParts[0], parseInt($dateParts[1], 10) - 1, $dateParts[2], $timeParts[0], $timeParts[1]);
-                $('#answer').text($verNum).css("color", getVersionColor($verNum));
-                $('#age').html("~" + $.format.prettyDate($date) + "<br />");
-                $('#age').append("(" + $.format.date($date, "MMM D yyyy @ h:mm a") + " UTC)");
+                function parseDateFromPubDate(pubDate) {
+                    var dateTimeParts = pubDate.split(" ");
+                    var timeParts = dateTimeParts[1].split(':');
+                    var dateParts = dateTimeParts[0].split('-');
+                    return new Date(dateParts[0], parseInt(dateParts[1], 10) - 1, dateParts[2], timeParts[0], timeParts[1]);
+                }
+
+                function updateVersionDisplay(versionSelector, ageSelector, version, date) {
+                    if (version) {
+                        $(versionSelector).text(version).css("color", getVersionColor(version));
+                        var $ageElement = $(ageSelector);
+                        $ageElement.html("~" + $.format.prettyDate(date) + "<br />");
+                        $ageElement.append("(" + $.format.date(date, "MMM D yyyy @ h:mm a") + " UTC)");
+                    } else {
+                        $(versionSelector).text("N/A");
+                        $(ageSelector).text("No updates found");
+                    }
+                }
+
+                var switchVersion = null;
+                var switch2Version = null;
+                var switchDate = null;
+                var switch2Date = null;
+
+                // Find the latest versions for both Switch and Switch 2
+                $.each(data.items, function (k, v) {
+                    var title = v.title;
+                    if (title.indexOf("Switch 2 ") === 0 && !switch2Version) {
+                        switch2Version = title.split(" ")[2];
+                        switch2Date = parseDateFromPubDate(v.pubDate);
+                    } else if (title.indexOf("Switch ") === 0 && title.indexOf("Switch 2 ") !== 0 && !switchVersion) {
+                        switchVersion = title.split(" ")[1];
+                        switchDate = parseDateFromPubDate(v.pubDate);
+                    }
+                });
+
+                // Update both versions
+                updateVersionDisplay('#switch-version', '#switch-age', switchVersion, switchDate);
+                updateVersionDisplay('#switch2-version', '#switch2-age', switch2Version, switch2Date);
             });
         }, 50);
     });
